@@ -1,13 +1,10 @@
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useState, useCallback} from "react";
 import styled from "styled-components";
 
 const StyledSquare = styled.div`
     width: 100px;
     height: 100px;
     border: 1px solid black;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     background: ${props => {
         if (props.status === "dead") {
             return "grey";
@@ -20,21 +17,20 @@ const StyledSquare = styled.div`
 `;
     
 const StyledSquares = styled.div`
-    display: flex;
-    flex-direction: row;
-    width: 400px;
     margin: 100px;
 `;
 
-const Square = ({id, setFighter, status, isClicked}) => {
-    
-    const handleClick = (id) => {
-        setFighter(id);
-    }
+const Row = styled.div`
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 0fr));
+`;
 
+const Column = styled.div``;
+
+const Square = ({id, setFighter, status, isClicked}) => {
     return(
-        <StyledSquare id={id} onClick={() => handleClick(id)} clicked={isClicked} status={status} >
-            <div className="title">Square</div>
+        <StyledSquare id={id} onClick={() => setFighter(id)} clicked={isClicked} status={status} >
+            <h3>Square</h3>
         </StyledSquare>
     )
 }
@@ -43,19 +39,21 @@ export const Squares = () => {
     const grid = 4;
     const [fighters, setFighters] = useState([]);
     const [loosers, setLoosers] = useState([]);
+    const [clickCount, setClickCount] = useState(0);
 
     const setFighter = (fighterId) => {
         if (fighters.length < 2) {
             setFighters([...fighters, fighterId]);
         }
+        setClickCount(count => count + 1);
     }
     
-    const chooseWinner = (id1, id2) => {
-        const randomNum = Math.floor(Math.random() * 2);
+    const chooseWinner = useCallback((id1, id2) => {
+        const randomNum = Math.round(Math.random());
         const looserId = randomNum === 0 ? id2 : id1;
 
         setLoosers([...loosers, looserId]);
-    }
+    }, [loosers]);
 
     useEffect(() => {
         if (fighters.length === 2) {
@@ -66,7 +64,6 @@ export const Squares = () => {
 
 
     const getStatus = (id) => {
-        // loop through squares and find the correct id and update its status
         return loosers.includes(id) ? "dead" : "live";
     }
 
@@ -90,19 +87,22 @@ export const Squares = () => {
 
         return rows.map((row, rowId) => {
             return (
-                <div key={rowId}>
+                <Row key={rowId}>
                     {row.map((col, colId) => {
                         return (
-                            <div key={colId}>{col}</div>
+                            <Column key={colId}>{col}</Column>
                         )
                     })}
-                </div>
+                </Row>
             )
         })
     }
     return (
-        <StyledSquares>
-            {drawGrid()}
-        </StyledSquares>
+        <>
+            <p>Clicks count: {clickCount}</p>
+            <StyledSquares>
+                {drawGrid()}
+            </StyledSquares>
+        </>
     )
 };
